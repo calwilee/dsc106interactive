@@ -1,0 +1,30 @@
+
+body {
+    /* Set line height to 1.5 times the font size
+         and use the OS’s UI font as the website font
+       */
+    font: 100%/1.5 system-ui;
+    margin-inline: auto;
+    margin-inline: max(1em, (100% - 80ch) / 2);
+
+
+}
+center{
+    background-color: blue;
+    width: 100px;
+}
+H1{
+    font-size: 25px;
+}
+header{
+    background-color: blue;
+    height: 5ch
+}
+.wrapper{
+    background-color: aquamarine;
+}
+#chart{
+    width: inherit;
+    height: 600px;
+    background-color: red;
+}
