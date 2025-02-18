@@ -32,7 +32,7 @@ function createScatterplot(){
 
     xScale = d3
         .scaleLinear()
-        .domain([-100, 1500])
+        .domain([0, 1500])
         .range([0, width]);
 
     yScale = d3
@@ -81,6 +81,113 @@ function createScatterplot(){
             .attr('d', line)
             .style('fill', 'none')
             .style('stroke', colorScale(gender))
-            .style('stroke-width', 2);
-    })
+            .style('stroke-width', 4);
+    });
+    svg.on("mousemove", (event) => {
+        updateVerticalLinePosition(event);
+        updateTooltipPosition(event);
+        updateTooltipContentBasedOnMouse(event);
+
+    });
+    const verticalLine = svg.append('line')
+        .attr('stroke', 'black')
+        .attr('stroke-width', 3)
+        .style('stroke-dasharray', '4')
+        .style('pointer-events', 'none') // Make sure it doesn't interfere with other interactions
+        .attr('y1', usableArea.top) // Top of the chart
+        .attr('y2', usableArea.bottom); // Bottom of the chart
+
+    // Update the vertical line position based on mouse movement
+    function updateVerticalLinePosition(event) {
+        const [mouseX, mouseY] = d3.pointer(event); // Get mouse position relative to the SVG
+        const time = xScale.invert(mouseX);
+        if (time >= 0){
+            verticalLine.attr('x1', mouseX).attr('x2', mouseX);
+
+        }
+        // Update the vertical line's x position
+    }
+    function updateTooltipContentBasedOnMouse(event) {
+        const [mouseX, mouseY] = d3.pointer(event); // Get mouse position relative to the SVG
+        const time = xScale.invert(mouseX); // Convert mouse X position to time
+        const temperature = getMaleFemaleValuesAtTime(time); // Get male and female temperature values
+        
+        // Update tooltip with time and temperatures for both genders
+        updateTooltipContent({
+            time: time.toFixed(2),
+            male: temperature.male.temperature,
+            female: temperature.female.temperature
+        });
+    }
+    
+
+
+
+
+    
 };
+
+// Function to get male and female values for a specific time
+function getMaleFemaleValuesAtTime(time) {
+    // Find the closest data point for males and females
+    const maleData = data.filter((d) => d.gender === 'Male');
+    const femaleData = data.filter((d) => d.gender === 'Female');
+    console.log(data);
+    console.log("Female Data:", femaleData);
+    console.log("male Data:", maleData);
+
+
+    // Function to find the closest data point to a given time
+    const findClosestDataPoint = (genderData, time) => {
+        let closestPoint = genderData[0];
+        let minDiff = Math.abs(time - closestPoint.time);
+
+        genderData.forEach(d => {
+            const diff = Math.abs(time - d.time);
+            if (diff < minDiff) {
+                closestPoint = d;
+                minDiff = diff;
+            }
+        });
+
+        return closestPoint;
+    };
+
+    // Get the closest points for male and female
+    const closestMale = findClosestDataPoint(maleData, time);
+    const closestFemale = findClosestDataPoint(femaleData, time);
+
+    return {
+        male: {
+            temperature: closestMale.Temperature
+        },
+        female: {
+            temperature: closestFemale.Temperature
+        }
+    };
+}
+
+
+
+
+function updateTooltipVisibility(isVisible) {
+    const tooltip = document.getElementById('commit-tooltip');
+    tooltip.style.visibility = isVisible ? 'visible' : 'hidden';
+}
+
+function updateTooltipContent(d) {
+
+    const tooltip = document.getElementById('commit-tooltip');
+    if (d.time > 0){
+        tooltip.innerHTML = `Time: ${d.time}<br>Male Temperature: ${d.male}<br>Female Temperature: ${d.female}`;
+
+
+    }
+}
+
+
+function updateTooltipPosition(event) {
+    const tooltip = document.getElementById('commit-tooltip');
+    tooltip.style.left = `${event.clientX + 10}px`; // 10px offset for better visibility
+    tooltip.style.top = `${event.clientY + 10}px`; // 10px offset for better visibility
+}
