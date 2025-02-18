@@ -5,21 +5,18 @@ let xScale;
 let yScale;
 
 async function loadData(){
-    data = await d3.csv('file1.csv', (row) => ({
+    data = await d3.csv('fem_data.csv', (row) => ({
         ...row,
         time: Number(row.time),
-        Temperature: Number(row.Temperature)
+        temperature: Number(row.temperature)
     }));
-
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
-    createScatterplot()
+    createScatterplot();
     console.log(data);
-
-    });
-
+});
 
 function createScatterplot(){
     const margin = { top: 10, right: 10, bottom: 30, left: 20 };
@@ -31,8 +28,8 @@ function createScatterplot(){
         .style('overflow', 'visible');
 
     xScale = d3
-        .scaleLinear()
-        .domain([0, 1500])
+        .scaleTime()
+        .domain([new Date(0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 55)])  // 0-287 intervals, 24 hours
         .range([0, width]);
 
     yScale = d3
@@ -52,7 +49,7 @@ function createScatterplot(){
     xScale.range([usableArea.left, usableArea.right]);
     yScale.range([usableArea.bottom, usableArea.top]);
 
-    const xAxis = d3.axisBottom(xScale);
+    const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%I:%M %p")); // Format as Time
     const yAxis = d3.axisLeft(yScale);
 
     svg.append('g')
@@ -63,32 +60,28 @@ function createScatterplot(){
         .attr('transform', `translate(${usableArea.left}, 0)`)
         .call(yAxis);
 
-    const genderGroups = d3.group(data, d => d.gender);
-
-
+    const estrusGroups = d3.group(data, d => d.gender); // Group by estrus status
     const colorScale = d3.scaleOrdinal()
-        .domain(genderGroups.keys())
+        .domain(estrusGroups.keys())
         .range(["steelblue", "crimson"]);
 
     const line = d3.line()
-        .x(d => xScale(d.time))
-        .y(d => yScale(d.Temperature));
+        .x(d => {
+            const timeInMinutes = d.time * 5;  // Convert to actual minutes
+            return xScale(new Date(0, 0, 0, Math.floor(timeInMinutes / 60), timeInMinutes % 60)); // Map to Date object
+        })
+        .y(d => yScale(d.temperature));
 
-    genderGroups.forEach((values, gender) => {
+    estrusGroups.forEach((values, estrusStatus) => {
         svg.append('path')
             .datum(values)
-            .attr('class', `line line-${gender}`)
+            .attr('class', `line line-${estrusStatus}`)
             .attr('d', line)
             .style('fill', 'none')
-            .style('stroke', colorScale(gender))
+            .style('stroke', colorScale(estrusStatus))
             .style('stroke-width', 4);
     });
-    svg.on("mousemove", (event) => {
-        updateVerticalLinePosition(event);
-        updateTooltipPosition(event);
-        updateTooltipContentBasedOnMouse(event);
 
-    });
     const verticalLine = svg.append('line')
         .attr('stroke', 'black')
         .attr('stroke-width', 3)
@@ -97,78 +90,63 @@ function createScatterplot(){
         .attr('y1', usableArea.top) // Top of the chart
         .attr('y2', usableArea.bottom); // Bottom of the chart
 
-    // Update the vertical line position based on mouse movement
+    svg.on("mousemove", (event) => {
+        updateVerticalLinePosition(event);
+        updateTooltipContentBasedOnMouse(event);
+    });
+
     function updateVerticalLinePosition(event) {
         const [mouseX, mouseY] = d3.pointer(event); // Get mouse position relative to the SVG
-        const time = xScale.invert(mouseX);
-        if (time >= 0){
+        const time = xScale.invert(mouseX); // This is now a Date object
+    
+        // Ensure the time is within the valid range
+        const minTime = new Date(0, 0, 0, 0, 0);
+        const maxTime = new Date(0, 0, 0, 23, 55);
+    
+        if (time >= minTime && time <= maxTime) {
             verticalLine.attr('x1', mouseX).attr('x2', mouseX);
-
         }
-        // Update the vertical line's x position
     }
+    
     function updateTooltipContentBasedOnMouse(event) {
-        const [mouseX, mouseY] = d3.pointer(event); // Get mouse position relative to the SVG
-        const time = xScale.invert(mouseX); // Convert mouse X position to time
-        const temperature = getMaleFemaleValuesAtTime(time); // Get male and female temperature values
-        
-        // Update tooltip with time and temperatures for both genders
-        updateTooltipContent({
-            time: time.toFixed(2),
-            male: temperature.male.temperature,
-            female: temperature.female.temperature
-        });
+        const [mouseX, mouseY] = d3.pointer(event);
+        const time = xScale.invert(mouseX); // Now a Date object
+    
+        const temperature = getEstrusNonEstrusValuesAtTime(time); // Function updated to get estrus and non-estrus data
+    
+        if (temperature) {
+            updateTooltipContent({
+                time: d3.timeFormat("%I:%M %p")(time), // Format time properly
+                estrus: temperature.estrus ? temperature.estrus.temperature : "N/A",
+                nonestrus: temperature.nonestrus ? temperature.nonestrus.temperature : "N/A"
+            });
+        }
     }
-    
-
-
-
-
-    
 };
 
-// Function to get male and female values for a specific time
-function getMaleFemaleValuesAtTime(time) {
-    // Find the closest data point for males and females
-    const maleData = data.filter((d) => d.gender === 'Male');
-    const femaleData = data.filter((d) => d.gender === 'Female');
-    console.log(data);
-    console.log("Female Data:", femaleData);
-    console.log("male Data:", maleData);
-
+function getEstrusNonEstrusValuesAtTime(time) {
+    const estrusData = data.filter(d => d.gender === 'female (estrus)');
+    const nonEstrusData = data.filter(d => d.gender === 'female (non-estrus)');
 
     // Function to find the closest data point to a given time
-    const findClosestDataPoint = (genderData, time) => {
-        let closestPoint = genderData[0];
-        let minDiff = Math.abs(time - closestPoint.time);
+    function findClosestDataPoint(estrusStatusData, targetTime) {
+        return estrusStatusData.reduce((closest, d) => {
+            const dataTime = parseTime(d);
+            return Math.abs(dataTime - targetTime) < Math.abs(parseTime(closest) - targetTime) ? d : closest;
+        }, estrusStatusData[0]); // Default to the first item
+    }
 
-        genderData.forEach(d => {
-            const diff = Math.abs(time - d.time);
-            if (diff < minDiff) {
-                closestPoint = d;
-                minDiff = diff;
-            }
-        });
-
-        return closestPoint;
-    };
-
-    // Get the closest points for male and female
-    const closestMale = findClosestDataPoint(maleData, time);
-    const closestFemale = findClosestDataPoint(femaleData, time);
+    // Convert dataset time values to Date objects
+    function parseTime(d) {
+        const timeInMinutes = d.time * 5; // Convert stored time units to actual minutes
+        return new Date(0, 0, 0, Math.floor(timeInMinutes / 60), timeInMinutes % 60);
+    }
 
     return {
-        male: {
-            temperature: closestMale.Temperature
-        },
-        female: {
-            temperature: closestFemale.Temperature
-        }
+        estrus: estrusData.length ? findClosestDataPoint(estrusData, time) : null,
+        nonestrus: nonEstrusData.length ? findClosestDataPoint(nonEstrusData, time) : null
     };
 }
-
-
-
 
 function updateTooltipVisibility(isVisible) {
     const tooltip = document.getElementById('commit-tooltip');
@@ -176,18 +154,9 @@ function updateTooltipVisibility(isVisible) {
 }
 
 function updateTooltipContent(d) {
-
     const tooltip = document.getElementById('commit-tooltip');
-    if (d.time > 0){
-        tooltip.innerHTML = `Time: ${d.time}<br>Male Temperature: ${d.male}<br>Female Temperature: ${d.female}`;
-
+    if (d.time && d.estrus && d.nonestrus) {
+        tooltip.innerHTML = `Time: ${d.time}<br>Estrus temperature: ${d.estrus ? d.estrus.toFixed(2) : 'N/A'}<br>Non-estrus temperature: ${d.nonestrus ? d.nonestrus.toFixed(2) : 'N/A'}`;
 
     }
-}
-
-
-function updateTooltipPosition(event) {
-    const tooltip = document.getElementById('commit-tooltip');
-    tooltip.style.left = `${event.clientX + 10}px`; // 10px offset for better visibility
-    tooltip.style.top = `${event.clientY + 10}px`; // 10px offset for better visibility
 }
