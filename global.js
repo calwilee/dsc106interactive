@@ -5,10 +5,10 @@ let xScale;
 let yScale;
 
 async function loadData(){
-    data = await d3.csv('file1.csv', (row) => ({
+    data = await d3.csv('fem_data.csv', (row) => ({
         ...row,
         time: Number(row.time),
-        Temperature: Number(row.Temperature)
+        Temperature: Number(row.temperature)
     }));
 
 }
@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     createScatterplot()
     console.log(data);
-
     });
 
 
@@ -30,14 +29,14 @@ function createScatterplot(){
         .attr('viewBox', `0 0 ${width} ${height}`)
         .style('overflow', 'visible');
 
-    xScale = d3
-        .scaleLinear()
-        .domain([-100, 1500])
+        xScale = d3
+        .scaleTime()
+        .domain([new Date(0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 55)])  // 0-287 intervals, 24 hours
         .range([0, width]);
 
     yScale = d3
         .scaleLinear()
-        .domain([35, 39])
+        .domain([36, 39])
         .range([height, 0]);
 
     const usableArea = {
@@ -52,7 +51,7 @@ function createScatterplot(){
     xScale.range([usableArea.left, usableArea.right]);
     yScale.range([usableArea.bottom, usableArea.top]);
 
-    const xAxis = d3.axisBottom(xScale);
+    const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%I:%M %p")); // Format as Time
     const yAxis = d3.axisLeft(yScale);
 
     svg.append('g')
@@ -68,10 +67,13 @@ function createScatterplot(){
 
     const colorScale = d3.scaleOrdinal()
         .domain(genderGroups.keys())
-        .range(["steelblue", "crimson"]);
+        .range(["red", "green"]);
 
-    const line = d3.line()
-        .x(d => xScale(d.time))
+        const line = d3.line()
+        .x(d => {
+            const timeInMinutes = d.time * 5;  // Convert to actual minutes
+            return xScale(new Date(0, 0, 0, Math.floor(timeInMinutes / 60), timeInMinutes % 60)); // Map to Date object
+        })
         .y(d => yScale(d.Temperature));
 
     genderGroups.forEach((values, gender) => {
