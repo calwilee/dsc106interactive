@@ -4,7 +4,6 @@ const height = 600;
 let xScale;
 let yScale;
 
-// loads data from csv
 async function loadData(){
     data = await d3.csv('file1.csv', (row) => ({
         ...row,
@@ -14,35 +13,33 @@ async function loadData(){
 
 }
 
-// runs functions in doc
 document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     createScatterplot()
     console.log(data);
 
-});
+    });
 
-// builds scatterplot
+
 function createScatterplot(){
     const margin = { top: 10, right: 10, bottom: 30, left: 20 };
     
     const svg = d3
-    .select('#chart')
-    .append('svg')
-    .attr('viewBox', `0 0 ${width} ${height}`)
-    .style('overflow', 'visible');
+        .select('#chart')
+        .append('svg')
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .style('overflow', 'visible');
 
-    // scales 
     xScale = d3
-    .scaleLinear()
-    .domain([0, 1400])
-    .range([0, width])
+        .scaleLinear()
+        .domain([-100, 1500])
+        .range([0, width]);
 
     yScale = d3
-    .scaleLinear()
-    .domain(d3.extent(data, (d) => d.Temperature))
-    .range([height, 0]);
-    
+        .scaleLinear()
+        .domain([35, 39])
+        .range([height, 0]);
+
     const usableArea = {
         top: margin.top,
         right: width - margin.right,
@@ -55,37 +52,35 @@ function createScatterplot(){
     xScale.range([usableArea.left, usableArea.right]);
     yScale.range([usableArea.bottom, usableArea.top]);
 
-    
-
     const xAxis = d3.axisBottom(xScale);
-    const yAxis = d3.axisLeft(yScale)
+    const yAxis = d3.axisLeft(yScale);
+
+    svg.append('g')
+        .attr('transform', `translate(0, ${usableArea.bottom})`)
+        .call(xAxis);
+
+    svg.append('g')
+        .attr('transform', `translate(${usableArea.left}, 0)`)
+        .call(yAxis);
+
+    const genderGroups = d3.group(data, d => d.gender);
 
 
-    // Add X axis
-    svg
-    .append('g')
-    .attr('transform', `translate(0, ${usableArea.bottom})`)
-    .call(xAxis);
+    const colorScale = d3.scaleOrdinal()
+        .domain(genderGroups.keys())
+        .range(["steelblue", "crimson"]);
 
-    // Add Y axis
-    svg
-    .append('g')
-    .attr('transform', `translate(${usableArea.left}, 0)`)
-    .call(yAxis);
-    
     const line = d3.line()
-        .x(d => xScale(d.time))  // Use x scale for data mapping
-        .y(d => yScale(d.Temperature));  // Use y scale for data mapping
+        .x(d => xScale(d.time))
+        .y(d => yScale(d.Temperature));
 
-    // Append line path to the SVG
-    svg
-    .append('path')
-    .data([data])  // Bind the data to the path element
-    .attr('class', 'line')  // Optional for styling
-    .attr('d', line)  // Draw the line based on the line generator
-    .style('fill', 'none')
-    .style('stroke', 'steelblue')
-    .style('stroke-width', 2);
-
-    
-}
+    genderGroups.forEach((values, gender) => {
+        svg.append('path')
+            .datum(values)
+            .attr('class', `line line-${gender}`)
+            .attr('d', line)
+            .style('fill', 'none')
+            .style('stroke', colorScale(gender))
+            .style('stroke-width', 2);
+    })
+};
