@@ -99,7 +99,7 @@ function createScatterplot(){
     const estrusGroups = d3.group(data, d => d.gender); // Group by estrus status
     const colorScale = d3.scaleOrdinal()
         .domain(estrusGroups.keys())
-        .range(["steelblue", "crimson"]);
+        .range(["#e85193", "#607D8B"]);
 
     const line = d3.line()
         .x(d => {
@@ -120,39 +120,36 @@ function createScatterplot(){
 
     const legend = svg.append("g")
         .attr("class", "legend")
-        .attr("transform", `translate(${width - 120}, ${margin.top + 10})`); // Position legend to the right
+        .attr("transform", `translate(${width - 110}, ${margin.top + 15})`); // Position legend to the right
     
     const legendItems = legend.selectAll(".legend-item")
         .data(estrusGroups.keys()) // Get unique group names
         .enter()
         .append("g")
         .attr("class", "legend-item")
-        .attr("transform", (d, i) => `translate(0, ${i * 20})`); // Adjust vertical spacing
+        .attr("transform", (d, i) => `translate(0, ${i * 30})`); // Adjust vertical spacing
 
     legendItems.append("circle")
         .attr("cx", 0)
         .attr("cy", 0)
-        .attr("r", 6)
+        .attr("r", 10)
         .style("fill", d => colorScale(d));
     
     legendItems.append("text")
-        .attr("x", 10) // Position text next to the circle
-        .attr("y", 4)
-        .style("font-size", "12px")
+        .attr("x", 15) // Position text next to the circle
+        .attr("y", 5)
+        .style("font-size", "16px")
         .text(d => d);
     
     
-
-
-
-
     const verticalLine = svg.append('line')
         .attr('stroke', 'black')
         .attr('stroke-width', 3)
         .style('stroke-dasharray', '4')
         .style('pointer-events', 'none') // Make sure it doesn't interfere with other interactions
         .attr('y1', usableArea.top) // Top of the chart
-        .attr('y2', usableArea.bottom); // Bottom of the chart
+        .attr('y2', usableArea.bottom) // Bottom of the chart
+        .style('opacity', 0);
 
     svg.on("mousemove", (event) => {
         updateVerticalLinePosition(event);
@@ -168,7 +165,8 @@ function createScatterplot(){
         const maxTime = new Date(0, 0, 0, 23, 55);
     
         if (time >= minTime && time <= maxTime) {
-            verticalLine.attr('x1', mouseX).attr('x2', mouseX);
+            verticalLine.attr('x1', mouseX).attr('x2', mouseX)
+            .style('opacity', 1);;
         }
     }
     
@@ -189,8 +187,8 @@ function createScatterplot(){
 };
 
 function getEstrusNonEstrusValuesAtTime(time) {
-    const estrusData = data.filter(d => d.gender === 'female (estrus)');
-    const nonEstrusData = data.filter(d => d.gender === 'female (non-estrus)');
+    const estrusData = data.filter(d => d.gender === 'Estrus');
+    const nonEstrusData = data.filter(d => d.gender === 'Non-estrus');
 
     // Function to find the closest data point to a given time
     function findClosestDataPoint(estrusStatusData, targetTime) {
