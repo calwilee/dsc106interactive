@@ -34,7 +34,7 @@ function createScatterplot(){
 
     yScale = d3
         .scaleLinear()
-        .domain([35, 39])
+        .domain([36, 38.5])
         .range([height, 0]);
 
     const usableArea = {
@@ -217,7 +217,6 @@ function getEstrusNonEstrusValuesAtTime(time) {
 
 function updateTooltipVisibility(isVisible) {
     const tooltip = document.getElementById('commit-tooltip');
-    // tooltip.style.position = "fixed";
     tooltip.style.visibility = isVisible ? 'visible' : 'hidden';
 }
 

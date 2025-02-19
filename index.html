@@ -16,5 +16,41 @@
     </div>
     <div id="chart"></div>
     <dl id="commit-tooltip", class="info tooltip"></dl>
+
+    <h2> Group name: Power Puff Girls</h2>
+    <p>
+        For project 3, we the power puff girls were interested in the question of how estrus influences the oscillation and patterns of body temperature in female mice. 
+        To answer this, we decided to first split our female mice data into estrus days and non-estrus days, and aggregate all female mice data 
+        across all days to compute the average body temperature thoroughout the day. The body temperature data here was averaged every 5 minutes to 
+        remove the noise and decluter our graph.
+        <br>
+        <br>
+        From this, we plotted this data as a line graph to visualize the change in body temperature throughout the day for estrus and non-estrus periods.
+        The use of a line graph allowed us to show the continuous change in body temperature throughout the day and we utilzed the visual encoding of common scale 
+        to make it easy to compare the two trends. The y-axis was not truncateed to zero as we were comparing the relative trends/values of the two groups.
+
+        <br>
+        <br>
+        To make it easy to distinguish the two groups, we utilized the identity channel of color hues (dark pink for estrus, steel blue for non-estrus).
+        This color scheme was chosen as it is easy to distinguish and highlights estrus as the main focus of the visualization. This color choice of pink
+        also symbolically corresponds to the female association with estrus and ovulation. In this way, we were able to redudantly encode the two groups
+        using color to make it easy to distinguish between them. We were originally planning to add the body temperature data for male mice to the graph to act
+        as a sort of control group. However, upon doing this, we found that the graph was too cluttered and was hard to read, in addition to being unncessary to 
+        the main focus of our visualization/question to ansewr.
+
+        <br>
+        <br>
+        In addition, we added a tooltip as well as a interactive dotted vertical line to allow users to hover over the line graph to see the exact body temperature
+        values at each time point. This allows users to see the exact values of the data and compare the two groups at each time point. The tooltip was placed
+        at the bottom of the line graph to make it easy to see and not block the data points. The tooltip was also designed to be easy to read and understand.
+
+        <br>
+        <br>
+        In terms of our development process, we splitted up the work by having mostly one person work with aggregating and transforming of the data, one person on generating the line plot,
+        and the last person on adding the tooltip and interactive elements. Ofcourse, this was not a strict division of labour but a rough outline. We worked together to help
+        eachother debug and also took some time to merge our branches. This worked pretty well for us as we were able to focus on individual tasks while being able to provide input
+        on the overall visualization. We spent roughly 1-1.5 hours brainstorming our idea in the checkpoint stage, and another 2-3 hours working together to create the interactive
+        visualization. In terms of in-person hours, most of the work was done in person at Geisel 🤢🤢🤢💩 but some finalization was done separately at home (including this writeup).
+    </p>
 </body>
 </html>
