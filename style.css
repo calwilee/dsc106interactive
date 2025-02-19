@@ -23,7 +23,7 @@ dt {
 }
 
 .wrapper{
-    background-color: #f0f0f0;
+    background-color: hsla(0, 6%, 83%, 0.201);
 }
 #chart{
     width: inherit;
@@ -41,4 +41,11 @@ dt {
 }
 dl {
     margin-top: -180px;
+}
+p {
+    margin-top: -15px;
+    font-size: 15px;
+    color: rgb(87, 87, 87);
+    font-family: comic sans ms;
+
 }
