@@ -14,17 +14,21 @@ center{
 }
 H1{
     font-size: 25px;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif  
 }
-header{
-    background-color: blue;
-    height: 5ch
+
+dt {
+    font-size: 25px;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif  
 }
+
 .wrapper{
-    background-color: aquamarine;
+    background-color: #f0f0f0;
 }
 #chart{
     width: inherit;
     height: 600px;
+    margin-top: 1em;
 }
 
 .grid line {
@@ -34,4 +38,7 @@ header{
 }
 .grid path {
     stroke-width: 0;
+}
+dl {
+    margin-top: -180px;
 }

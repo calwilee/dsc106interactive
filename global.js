@@ -156,6 +156,11 @@ function createScatterplot(){
         updateTooltipContentBasedOnMouse(event);
     });
 
+    svg.on("mouseleave", () => {
+        updateTooltipVisibility(false);
+        verticalLine.style('opacity', 0); // Hide the vertical line as well
+    });
+
     function updateVerticalLinePosition(event) {
         const [mouseX, mouseY] = d3.pointer(event); // Get mouse position relative to the SVG
         const time = xScale.invert(mouseX); // This is now a Date object
@@ -218,7 +223,7 @@ function updateTooltipVisibility(isVisible) {
 function updateTooltipContent(d) {
     const tooltip = document.getElementById('commit-tooltip');
     if (d.time && d.estrus && d.nonestrus) {
-        tooltip.innerHTML = `Time: ${d.time}<br>Estrus temperature: ${d.estrus ? d.estrus.toFixed(2) : 'N/A'} ºC<br>Non-estrus temperature: ${d.nonestrus ? d.nonestrus.toFixed(2) : 'N/A'} ºC`;
-
+        tooltip.innerHTML = `Time: ${d.time}<br>Estrus Temperature: ${d.estrus ? d.estrus.toFixed(2) : 'N/A'} ºC<br>Non-Estrus Temperature: ${d.nonestrus ? d.nonestrus.toFixed(2) : 'N/A'} ºC`;
+        updateTooltipVisibility(true); // Show the tooltip when content is updated
     }
 }
