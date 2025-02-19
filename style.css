@@ -26,3 +26,12 @@ header{
     width: inherit;
     height: 600px;
 }
+
+.grid line {
+    stroke: lightgray;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+}
+.grid path {
+    stroke-width: 0;
+}

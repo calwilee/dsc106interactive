@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function createScatterplot(){
-    const margin = { top: 10, right: 10, bottom: 30, left: 20 };
+    const margin = { top: 10, right: 10, bottom: 50, left: 50 };
     
     const svg = d3
         .select('#chart')
@@ -52,6 +52,42 @@ function createScatterplot(){
     const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%I:%M %p")); // Format as Time
     const yAxis = d3.axisLeft(yScale);
 
+    const xGrid = d3.axisBottom(xScale)
+        .tickSize(-usableArea.height)  // Extend ticks across the chart
+        .tickFormat("");  // Remove labels
+
+    const yGrid = d3.axisLeft(yScale)
+        .tickSize(-usableArea.width) 
+        .tickFormat("");  
+
+    svg.append("g")
+        .attr("class", "grid")
+        .attr("transform", `translate(0, ${usableArea.bottom})`)
+        .call(xGrid);
+    
+    svg.append("g")
+        .attr("class", "grid")
+        .attr("transform", `translate(${usableArea.left}, 0)`)
+        .call(yGrid);
+
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", usableArea.left + usableArea.width / 2)
+        .attr("y", height) // Move further below the x-axis
+        .text("Time of Day")
+        .style("font-size", "16px")
+        .style("font-weight", "bold");
+
+    svg.append("text")  
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)") // Rotate for vertical orientation
+        .attr("x", -usableArea.top - usableArea.height / 2)
+        .attr("y", -0) // Move further left from the y-axis
+        .text("Temperature (°C)")
+        .style("font-size", "16px")
+        .style("font-weight", "bold");
+
+
     svg.append('g')
         .attr('transform', `translate(0, ${usableArea.bottom})`)
         .call(xAxis);
@@ -81,6 +117,34 @@ function createScatterplot(){
             .style('stroke', colorScale(estrusStatus))
             .style('stroke-width', 4);
     });
+
+    const legend = svg.append("g")
+        .attr("class", "legend")
+        .attr("transform", `translate(${width - 120}, ${margin.top + 10})`); // Position legend to the right
+    
+    const legendItems = legend.selectAll(".legend-item")
+        .data(estrusGroups.keys()) // Get unique group names
+        .enter()
+        .append("g")
+        .attr("class", "legend-item")
+        .attr("transform", (d, i) => `translate(0, ${i * 20})`); // Adjust vertical spacing
+
+    legendItems.append("circle")
+        .attr("cx", 0)
+        .attr("cy", 0)
+        .attr("r", 6)
+        .style("fill", d => colorScale(d));
+    
+    legendItems.append("text")
+        .attr("x", 10) // Position text next to the circle
+        .attr("y", 4)
+        .style("font-size", "12px")
+        .text(d => d);
+    
+    
+
+
+
 
     const verticalLine = svg.append('line')
         .attr('stroke', 'black')
@@ -156,7 +220,7 @@ function updateTooltipVisibility(isVisible) {
 function updateTooltipContent(d) {
     const tooltip = document.getElementById('commit-tooltip');
     if (d.time && d.estrus && d.nonestrus) {
-        tooltip.innerHTML = `Time: ${d.time}<br>Estrus temperature: ${d.estrus ? d.estrus.toFixed(2) : 'N/A'}<br>Non-estrus temperature: ${d.nonestrus ? d.nonestrus.toFixed(2) : 'N/A'}`;
+        tooltip.innerHTML = `Time: ${d.time}<br>Estrus temperature: ${d.estrus ? d.estrus.toFixed(2) : 'N/A'} ºC<br>Non-estrus temperature: ${d.nonestrus ? d.nonestrus.toFixed(2) : 'N/A'} ºC`;
 
     }
 }
