@@ -217,11 +217,13 @@ function getEstrusNonEstrusValuesAtTime(time) {
 
 function updateTooltipVisibility(isVisible) {
     const tooltip = document.getElementById('commit-tooltip');
+    // tooltip.style.position = "fixed";
     tooltip.style.visibility = isVisible ? 'visible' : 'hidden';
 }
 
 function updateTooltipContent(d) {
     const tooltip = document.getElementById('commit-tooltip');
+    
     if (d.time && d.estrus && d.nonestrus) {
         tooltip.innerHTML = `Time: ${d.time}<br>Estrus Temperature: ${d.estrus ? d.estrus.toFixed(2) : 'N/A'} ºC<br>Non-Estrus Temperature: ${d.nonestrus ? d.nonestrus.toFixed(2) : 'N/A'} ºC`;
         updateTooltipVisibility(true); // Show the tooltip when content is updated
